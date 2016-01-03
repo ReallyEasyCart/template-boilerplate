@@ -1,0 +1,15 @@
+{
+  "transport": "ftp",
+  "uploadOnSave": true,
+  "deleteLocal": true,
+  "hostname": "HOST",
+  "port": "21",
+  "target": "/responsive-site",
+  "ignore": [
+    ".remote-sync.json",
+    "node_modules/**",
+    ".git/**"
+  ],
+  "username": "USER",
+  "password": "PASS"
+}

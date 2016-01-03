@@ -1,0 +1,4 @@
+{
+    "extends": "responsive-base",
+    "description": "These are all the changed files for this site overriding the responsive-base template."
+}

@@ -1,0 +1,7 @@
+{
+  "name": "responsive-site-template",
+  "private": true,
+  "dependencies": {
+    "page": "page.js#~1.6.4"
+  }
+}

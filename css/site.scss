@@ -1,0 +1,22 @@
+
+@import "site/vendor"; // 3rd party
+@import "site/mixins";
+
+// quick variables to help
+@import "site/variables";
+
+// default styling, e.g. links, buttons, forms etc...
+@import "site/base";
+
+// actual design / layout
+@import "site/layout/outer";
+@import "site/layout/header";
+@import "site/layout/middle";
+@import "site/layout/footer";
+
+// specific modules
+@import "site/modules/modal";
+// @import "site/modules/products";
+
+// specific pages, or groupings of pages
+@import "site/pages";

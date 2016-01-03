@@ -1,0 +1,20 @@
+
+//
+// Specific page actions
+//
+// e.g.
+// page('/', function () {
+//    console.log('Homepage!');
+// });
+// page('/About_Us.html', function () {
+//    console.log('About page!');
+// });
+
+// on ready, start the page router
+$(document).ready(function () {
+    page.start({
+        click: false, // don't hook into all clicks
+        popstate: false, // don't hook into popstate by default
+        hashbang: false // don't prefix urls with hashbang
+    });
+});

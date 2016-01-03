@@ -1,0 +1,9 @@
+{
+  "name": "responsive-site-template",
+  "private": true,
+  "dependencies": {
+    "chokidar": "^1.4.2",
+    "ftp": "^0.3.10",
+    "node-sass": "^3.4.2"
+  }
+}
