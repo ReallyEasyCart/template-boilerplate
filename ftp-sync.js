@@ -37,7 +37,7 @@ function writeCssToFile(css) {
 
 // ftp upload file function
 function ftpUploadFile(path) {
-    ftpConnection.put(path, ftpConfig.target + '/' + path, function(err) {
+    ftpConnection.put(path, ftpConfig.target + '/' + path, (err) => {
         if (err) {
             console.log('FTP Error:', err);
         }
@@ -48,7 +48,7 @@ function ftpUploadFile(path) {
 }
 
 // await connection before watching / compiling any files
-ftpConnection.on('ready', function() {
+ftpConnection.on('ready', () => {
 
     // begin watching directories
     chokidar.watch('css/**/*.scss', {
@@ -64,7 +64,7 @@ ftpConnection.on('ready', function() {
     renderSassToCss();
 
     // let the user know it's all setup and ready
-    console.log('Watching for sass file changes to upload.');
+    console.log('Connected & watching for sass file changes to upload.');
 
 });
 
@@ -85,3 +85,4 @@ ftpConnection.connect({
     password: ftpConfig.password,
     port: ftpConfig.port || 21
 });
+console.log('Connecting to FTP account...');

@@ -17,7 +17,7 @@ Boilerplate for starting a new responsive template with REC. Some basic conventi
 
 2. Name the folder whatever your project will be :).
 
-3. Open atom and file in the .remote-sunc.json file, replacing HOST, USER and PASS with these details from the site.
+3. Open Atom and open the .remote-sync.json file, replacing HOST, USER and PASS with these details from the site.
 
 4. Open the terminal and run `node ftp-client.js` in this folder.  
     This will start watching the sass/scss files and on change auto compile them to css and then auto upload that css file.  
@@ -27,7 +27,7 @@ Boilerplate for starting a new responsive template with REC. Some basic conventi
 
 ## Where to start coding
 
-- With html files, through them into the html/ directory as you would normally, use the same filename as in the responsive-base directory to override.
+- With html files, throw them into the html/ directory as you would normally, use the same filename as in the responsive-base directory to override.
 - With css & sass, put all your style into the scss files inside css/site/. Best to read through these files but here's a quick run down:
     - _base.scss for base styles of the site such as a base for all headings, buttons etc.
     - _mixins.scss for sass mixins/functions
@@ -42,4 +42,4 @@ Boilerplate for starting a new responsive template with REC. Some basic conventi
     - router.js.twig for javascript needed on specific pages such as just the homepage
     - vendor.js.twig for importing 3rd party javascript files such as page.js which we use to build the router file :)
 
-All of this is just an example default layout, in no way should you be forced to work this way, and feel free o add and remove what you'd like.
+All of this is just an example default layout, in no way should you be forced to work this way, and feel free to add and remove what you'd like.
