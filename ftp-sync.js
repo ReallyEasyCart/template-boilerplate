@@ -1,3 +1,4 @@
+
 'use strict';
 
 const path = require('path');
@@ -20,14 +21,12 @@ catch (e) {
     }
     catch (e) {
         console.log('Please setup .remote-sync.json config file');
-        process.exit(1);
     }
 }
 
 ftpConfig = JSON.parse(ftpConfig);
 if ( ! ftpConfig) {
     console.log('Remote-sync config file is not valid JSON');
-    process.exit(1);
 }
 // root target? (well we still just want to sync this folder, so take this folders name instead)
 if (ftpConfig.target == '/') {
@@ -43,6 +42,22 @@ function renderSassToCss() {
     }, (err, result) => {
         if (err) {
             console.log('SASS', err.formatted);
+            // read in the current file contents and add this error to the top
+            let errorString = "/* !!! SASS ERROR !!! */ \n\
+body:before { \n\
+    content: \"SASS "+ err.formatted.replace(/"/g, '\\"').replace(/\n/g, '\\A') + "\"; \n\
+    background: #FFF; color: #000; padding: 1em; font-size: 1.6em; \n\
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999; \n\
+    white-space: pre; font-family: monospace; \n\
+} \n\
+";
+            fs.readFile('css/site-sass-out.css.twig', 'utf8', function (err,data) {
+                if (err) {
+                    console.log('Error appending sass error text to css file');
+                } else {
+                    writeCssToFile(data + errorString);
+                }
+            });
         } else {
             // No errors during the compilation, write this result on the disk
             // console.log(result.css.toString());
@@ -92,11 +107,12 @@ ftpConnection.on('ready', () => {
 // ftpConnection.on('greeting', (msg) => {
 //     console.log('FTP greeting: ', msg);
 // });
-ftpConnection.on('close', () => {
-    console.log('FTP connection closed');
-});
 ftpConnection.on('error', (err) => {
     console.log('FTP Error: ', err);
+});
+ftpConnection.on('close', () => {
+    console.log('FTP connection closed');
+    process.exit(1);
 });
 ftpConnection.on('end', () => {
     console.log('FTP connection ended');
