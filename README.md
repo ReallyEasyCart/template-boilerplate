@@ -1,5 +1,5 @@
 
-# REC Template Boilerplate (inc. Sass + auto FTP support)
+# REC Template Boilerplate (inc. BrowserSync, Sass and auto FTP support)
 
 Boilerplate for starting a new responsive template with REC. Some basic conventions and a simple folder structure to get started. With Sass files used to build the css, and a simple node script pre written for you to automatically ftp up your sass => css on changes. Use this with Atom's remote-sync and every change and compiled change will always be uploaded on save.
 
@@ -26,7 +26,7 @@ Boilerplate for starting a new responsive template with REC. Some basic conventi
     **Also you will need to run `npm install` in this directory the first time you get started to automatically install some dependencies we use to compile the sass to css and upload it with ftp.**
 
 5. the above command also runs browser sync which live reloads the pages on changes and syncs multiple devices given a url
-    You can run `./sync.js --help` for info on this command. As well as choosing to just run browsersync with `./sync.js --browsersync` if you don't want to use sass :). 
+    You can run `./sync.js --help` for info on this command. As well as choosing to just run browsersync with `./sync.js --browsersync` if you don't want to use sass :).
 
 ## Where to start coding
 
