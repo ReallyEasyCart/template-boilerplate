@@ -1,12 +1,14 @@
-
+#!/usr/bin/env node
 'use strict';
 
 const path = require('path');
 const chokidar = require('chokidar');
-const sass = require('node-sass');
 const fs = require('fs');
 const ftpClient = require('ftp');
+const sass = require('node-sass');
+const browserSync = require('browser-sync').create();
 let ftpConnection = new ftpClient();
+
 
 // collect FTP details
 let ftpConfig = null;
@@ -86,6 +88,11 @@ function ftpUploadFile(path) {
         }
         else {
             console.log('=> Uploaded CSS File.');
+
+            // reload in browsersync ;)
+            if (browserSync) {
+                browserSync.reload();
+            }
         }
     })
 }
@@ -139,6 +146,24 @@ ftpConnection.connect({
     port: ftpConfig.port || 21
 });
 console.log('Connecting to FTP account... Ctrl+c to close cleanly, and again to force exit.');
+
+let browserSyncInstance = browserSync.init({
+    proxy: "http://" + ftpConfig.hostname,
+    tunnel: true,
+    socket: {
+        domain: browserSync.instance.utils.devIp[0] + ':3000' // get the host ip
+    },
+    open: false,
+    logLevel: 'silent' // silent to stop browsersync saying where its live (as we're hacking to use http url instead of https)
+});
+// get the url, but force it to http instead of https
+browserSyncInstance.events.on('service:running', function (bs) {
+    let url = bs.urls.tunnel.replace('https://', 'http://');
+    console.log('----------------------------------------------');
+    console.log('BrowserSync live site: \x1b[35m%s\x1b[0m', url);
+    console.log('BrowserSync admin UI:  \x1b[35m%s\x1b[0m', bs.urls.ui);
+    console.log('----------------------------------------------');
+});
 
 // cleanly close ftp on process exit (Ctrl+c)
 let isClosing = false;
