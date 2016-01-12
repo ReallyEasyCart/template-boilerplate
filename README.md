@@ -19,11 +19,14 @@ Boilerplate for starting a new responsive template with REC. Some basic conventi
 
 3. Open Atom and open the .remote-sync.json file, replacing HOST, USER and PASS with these details from the site.
 
-4. Open the terminal and run `node ftp-client.js` in this folder.  
+4. Open the terminal and run `./sync.js --browsersync --sass` in this folder.  
     This will start watching the sass/scss files and on change auto compile them to css and then auto upload that css file.  
     The reason this is needed is that Atom's remote-sync (and other similar text editors) will upload the file you are changing but won't upload the compiled css file that came from sass. So this script takes care of that for you.  
     **You will need node and npm installed for this to work**  
     **Also you will need to run `npm install` in this directory the first time you get started to automatically install some dependencies we use to compile the sass to css and upload it with ftp.**
+
+5. the above command also runs browser sync which live reloads the pages on changes and syncs multiple devices given a url
+    You can run `./sync.js --help` for info on this command. As well as choosing to just run browsersync with `./sync.js --browsersync` if you don't want to use sass :). 
 
 ## Where to start coding
 
