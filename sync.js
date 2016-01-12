@@ -3,36 +3,74 @@
 
 const path = require('path');
 const chokidar = require('chokidar');
-const fs = require('fs');
-const ftpClient = require('ftp');
-const sass = require('node-sass');
-const browserSync = require('browser-sync').create();
-let ftpConnection = new ftpClient();
 
+const meow = require('meow');
+const cli = meow(`
+    Usage
+      $ ./sync.js --browsersync
 
-// collect FTP details
-let ftpConfig = null;
-try {
-    // try in current folder
-    ftpConfig = fs.readFileSync('.remote-sync.json');
+    Options
+      --sass  Auto compile SASS files
+        For more infomation, see: http://sass-lang.com/
+      --browsersync  Enables BrowserSync for live reload and multi device sync
+        For more infomation, see: https://www.browsersync.io/
+      --ftpall  Upload ALL files on change via FTP
+        (not needed if using an FTP editor plugin)
+      --help  Show this help infomation
+
+    Examples
+      $ ./sync.js --browsersync --sass --ftpall
+      $ ./sync.js --browsersync --sass
+      $ ./sync.js --browsersync
+      $ ./sync.js --sass
+`);
+
+// no flags / options given? show help
+if (Object.keys(cli.flags).length < 1) {
+    console.log('No options given...');
+    console.log(cli.help);
+    process.exit(1);
 }
-catch (e) {
-    // else try in above folder
+
+if (cli.flags.sass) {
+    var sass = require('node-sass');
+}
+
+if (cli.flags.browsersync) {
+    var browserSync = require('browser-sync').create();
+}
+
+if (cli.flags.sass || cli.flags.ftpall) {
+    var fs = require('fs');
+    var ftpClient = require('ftp');
+    var ftpConnection = new ftpClient();
+
+    // collect FTP details
+    var ftpConfig = null;
     try {
-        ftpConfig = fs.readFileSync('../.remote-sync.json');
+        // try in current folder
+        ftpConfig = fs.readFileSync('.remote-sync.json');
     }
     catch (e) {
-        console.log('Please setup .remote-sync.json config file');
+        // else try in above folder
+        try {
+            ftpConfig = fs.readFileSync('../.remote-sync.json');
+        }
+        catch (e) {
+            console.log('Please setup .remote-sync.json config file');
+            process.exit(1);
+        }
     }
-}
 
-ftpConfig = JSON.parse(ftpConfig);
-if ( ! ftpConfig) {
-    console.log('Remote-sync config file is not valid JSON');
-}
-// root target? (well we still just want to sync this folder, so take this folders name instead)
-if (ftpConfig.target == '/') {
-    ftpConfig.target = '/' + path.basename(__dirname);
+    ftpConfig = JSON.parse(ftpConfig);
+    if ( ! ftpConfig) {
+        console.log('Remote-sync config file is not valid JSON');
+        process.exit(1);
+    }
+    // root target? (well we still just want to sync this folder, so take this folders name instead)
+    if (ftpConfig.target == '/') {
+        ftpConfig.target = '/' + path.basename(__dirname);
+    }
 }
 
 // sass compile to css function
@@ -87,10 +125,10 @@ function ftpUploadFile(path) {
             console.log('FTP Error:', err);
         }
         else {
-            console.log('=> Uploaded CSS File.');
+            console.log('=> uploaded File:', path);
 
             // reload in browsersync ;)
-            if (browserSync) {
+            if (cli.flags.browsersync) {
                 browserSync.reload();
             }
         }
@@ -99,78 +137,87 @@ function ftpUploadFile(path) {
 
 // await connection before watching / compiling any files
 let ftpConnected = false;
-ftpConnection.on('ready', () => {
+if (cli.flags.sass || cli.flags.ftpall) {
+    ftpConnection.on('ready', () => {
 
-    // we're connected :D
-    ftpConnected = true;
+        // we're connected :D
+        ftpConnected = true;
 
-    // initial sass compile (incase of changes before this was run)
-    renderSassToCss();
+        // initial sass compile (incase of changes before this was run)
+        renderSassToCss();
 
-    // let the user know it's all setup and ready
-    console.log('Connected & watching for sass file changes to upload.');
+        // let the user know it's all setup and ready
+        console.log('Connected & watching for sass file changes to upload.');
 
-});
-// ftpConnection.on('greeting', (msg) => {
-//     console.log('FTP greeting: ', msg);
-// });
-ftpConnection.on('error', (err) => {
-    console.log('FTP Error: ', err);
-});
-ftpConnection.on('close', () => {
-    console.log('FTP connection closed');
-    process.exit(1);
-});
-ftpConnection.on('end', () => {
-    console.log('FTP connection ended');
-    process.exit(1);
-});
+    });
+    // ftpConnection.on('greeting', (msg) => {
+    //     console.log('FTP greeting: ', msg);
+    // });
+    ftpConnection.on('error', (err) => {
+        console.log('FTP Error: ', err);
+    });
+    ftpConnection.on('close', () => {
+        console.log('FTP connection closed');
+        process.exit(1);
+    });
+    ftpConnection.on('end', () => {
+        console.log('FTP connection ended');
+        process.exit(1);
+    });
+
+    // connect to FTP
+    ftpConnection.connect({
+        host: ftpConfig.hostname,
+        user: ftpConfig.username,
+        password: ftpConfig.password,
+        port: ftpConfig.port || 21
+    });
+    console.log('Connecting to FTP account... Ctrl+c to close cleanly, and again to force exit.');
+
+    // cleanly close ftp on process exit (Ctrl+c)
+    let isClosing = false;
+    process.on('SIGINT', function() {
+        ftpConnection.end();
+        if (isClosing) { // on double Ctrl+c, really exit
+            process.exit(1);
+        }
+        isClosing = true;
+    });
+}
 
 // begin watching directories
-chokidar.watch('css/**/*.scss', {
+chokidar.watch('**/*', {
     ignored: /[\/\\]\./,
     persistent: true,
     ignoreInitial: true // don't fire on existing files, only changes from now onwards
 }).on('all', (event, path) => {
     // console.log(event, path);
-    if (ftpConnected) {
+    console.log('=> '+ event +' detected: ' + path);
+    if (ftpConnected && cli.flags.sass && path.includes('.scss')) {
         renderSassToCss();
+    } else if (ftpConnected && cli.flags.ftpall) {
+        ftpUploadFile(path);
+    } else if (cli.flags.browsersync) {
+        browserSync.reload();
     }
 });
 
-// connect to FTP
-ftpConnection.connect({
-    host: ftpConfig.hostname,
-    user: ftpConfig.username,
-    password: ftpConfig.password,
-    port: ftpConfig.port || 21
-});
-console.log('Connecting to FTP account... Ctrl+c to close cleanly, and again to force exit.');
-
-let browserSyncInstance = browserSync.init({
-    proxy: "http://" + ftpConfig.hostname,
-    tunnel: true,
-    socket: {
-        domain: browserSync.instance.utils.devIp[0] + ':3000' // get the host ip
-    },
-    open: false,
-    logLevel: 'silent' // silent to stop browsersync saying where its live (as we're hacking to use http url instead of https)
-});
-// get the url, but force it to http instead of https
-browserSyncInstance.events.on('service:running', function (bs) {
-    let url = bs.urls.tunnel.replace('https://', 'http://');
-    console.log('----------------------------------------------');
-    console.log('BrowserSync live site: \x1b[35m%s\x1b[0m', url);
-    console.log('BrowserSync admin UI:  \x1b[35m%s\x1b[0m', bs.urls.ui);
-    console.log('----------------------------------------------');
-});
-
-// cleanly close ftp on process exit (Ctrl+c)
-let isClosing = false;
-process.on('SIGINT', function() {
-    ftpConnection.end();
-    if (isClosing) { // on double Ctrl+c, really exit
-        process.exit(1);
-    }
-    isClosing = true;
-});
+if (cli.flags.browsersync) {
+    let browserSyncInstance = browserSync.init({
+        proxy: "http://" + ftpConfig.hostname,
+        tunnel: true,
+        socket: {
+            domain: browserSync.instance.utils.devIp[0] + ':3000' // get the host ip
+        },
+        open: false,
+        logLevel: 'silent' // silent to stop browsersync saying where its live (as we're hacking to use http url instead of https)
+    });
+    // get the url, but force it to http instead of https
+    browserSyncInstance.events.on('service:running', function (bs) {
+        let url = bs.urls.tunnel.replace('https://', 'http://');
+        console.log('----------------------------------------------');
+        console.log('BrowserSync live site: \x1b[35m%s\x1b[0m', url);
+        console.log('BrowserSync admin UI:  \x1b[35m%s\x1b[0m', bs.urls.ui);
+        console.log('----------------------------------------------');
+    });
+}
