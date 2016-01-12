@@ -7,9 +7,10 @@ const chokidar = require('chokidar');
 const meow = require('meow');
 const cli = meow(`
     Usage
-      $ ./sync.js --browsersync
+      $ ./sync.js --url www.yoursite.com --browsersync
 
     Options
+      --url www.yoursite.com  The site you're working with [Required]
       --sass  Auto compile SASS files
         For more infomation, see: http://sass-lang.com/
       --browsersync  Enables BrowserSync for live reload and multi device sync
@@ -19,9 +20,8 @@ const cli = meow(`
       --help  Show this help infomation
 
     Examples
-      $ ./sync.js --browsersync --sass --ftpall
+      $ ./sync.js --url www.somesite.com --browsersync
       $ ./sync.js --browsersync --sass
-      $ ./sync.js --browsersync
       $ ./sync.js --sass
 `);
 
@@ -29,6 +29,12 @@ const cli = meow(`
 if (Object.keys(cli.flags).length < 1) {
     console.log('No options given...');
     console.log(cli.help);
+    process.exit(1);
+}
+
+// make sure we have a url to work with
+if ( ! cli.flags.sass && ! cli.flags.ftpall && cli.flags.browsersync && ! cli.flags.url) {
+    console.log('Please pass the --url www.yoursite.com option');
     process.exit(1);
 }
 
@@ -204,7 +210,7 @@ chokidar.watch('**/*', {
 
 if (cli.flags.browsersync) {
     let browserSyncInstance = browserSync.init({
-        proxy: "http://" + ftpConfig.hostname,
+        proxy: "http://" + (cli.flags.url ? cli.flags.url : ftpConfig.hostname),
         tunnel: true,
         socket: {
             domain: browserSync.instance.utils.devIp[0] + ':3000' // get the host ip
