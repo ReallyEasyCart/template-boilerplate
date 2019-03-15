@@ -1,4 +1,6 @@
 
+# [[ DEPRECATED : consider https://github.com/ReallyEasyCart/rivendell instead ]]
+
 # REC Template Boilerplate (inc. BrowserSync, Sass and auto FTP support)
 
 Boilerplate for starting a new responsive template with REC. Some basic conventions and a simple folder structure to get started. With Sass files used to build the css, and a simple node script pre written for you to automatically ftp up your sass => css on changes. Use this with Atom's remote-sync and every change and compiled change will always be uploaded on save.
